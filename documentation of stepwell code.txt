@@ -1,0 +1,210 @@
+DOCUMENTATION OF CODE FOR STEPWELL
+#include <Stepper.h>
+#include <Wire.h>
+#include <So wareWire.h>
+#include <RtcDS1307.h>
+#include <SPI.h>
+#include <SD.h>
+#include <String.h>
+
+These are all the necessary libraries included in the code to run diﬀerent func ons
+#include <Stepper.h> is used for stepper motor control
+#include <Wire.h> is used for I2C(inter-integrated circuit) communica on. I2C is a two-wire protocol
+used to establish serial communica on between two devices
+#include <So wareWire.h> is used for so ware-based I2C communica on protocol for Arduino
+#include <RtcDS1307.h> is used for real- me clock
+#include <SPI.h> is used for SPI(serial peripheral interface)communica on. SPI is a synchronous serial
+communica on that exchanges data between microcontrollers and peripherals devices like sensors,
+memory chips, etc.
+#include <SD.h> is used for SD card data handling
+#include <String.h> is used for string manipula on
+
+DEFINING CONSTANTS AND VARIABLES
+#deﬁne SDA 3: Represents the pin number used for the I2C data line (Serial Data).
+#deﬁne SCL 2: Represents the pin number used for the I2C clock line (Serial Clock).
+So wareWire myWire(SDA, SCL); to ini alize the so wareWire with class myWire used for I2C
+interfacing on SDA and SCL pins
+RtcDS1307<So wareWire> Rtc(myWire); is used to create an instance of RtcDS1307 class that uses
+so ware-based I2C interface for communica on with DS1307 real- me clock module
+#deﬁne gprsSerial Serial: it deﬁnes gprsSerial to use the built-in hardware serial for communica ng
+with the GSM module.
+ﬂoat windup_ckt = 0; ﬂoat variable is used to store the windup check value
+const int stepsPerRevolu on = 2048; number of steps for revolu on for the stepper motor
+
+#deﬁne IN1 7
+#deﬁne IN2 6
+#deﬁne IN3 5
+#deﬁne IN4 4
+Pins IN1,IN2,IN3,IN4 are deﬁned for controlling the stepper motor
+#deﬁne forcePin A7 : deﬁnes the force pin as A7 analog pin in Arduino
+#deﬁne Switch A5: deﬁnes switch as A5 represen ng analog pin connected to switch for sensor input
+#deﬁne chipSelect 10: deﬁnes chipselect as PIN 10 used for chip select when communica ng with an
+SD card module
+#deﬁne countof(a) (sizeof(a) / sizeof(a[0])) : deﬁnes countof(a) to calculate the number of elements
+in an array
+ﬂoat dist_per_step = 0.03068; it deﬁnes the stepper motor moves per step. This value is calculated
+based on the circumference of the spool and the number of steps per revolu on.
+int stepval = 162; it represents the number of steps to be executed each me when the motor moves
+int reading = 0; ﬁrstly reading value is declared as 0 it stores the sensor readings
+ﬂoat distance = 0; ﬂoa ng point variable is ini alized as 0
+unsigned long int reset_ me = millis(); it represents the number of milliseconds since the Arduino
+board began running
+Stepper myStepper(stepsPerRevolu on, IN1, IN3, IN2, IN4); ini alizing the stepper with object
+name my stepper with parameters specifying the number of steps per revolu on and the pin
+numbers (IN1, IN2, IN3, IN4) connected to the stepper motor.
+void writeData(ﬂoat distance, const RtcDateTime& dt){ : Deﬁnes a func on writeData that takes a
+ﬂoat distance and a const RtcDateTime& dt as parameters.
+File dataFile; declares the ﬁle with the name dataﬁle
+dataFile = SD.open("datalog.txt", FILE_WRITE); Opens or creates the ﬁle "datalog.txt" on the SD
+card for wri ng (FILE_WRITE mode) and assigns it to dataFile.
+if (dataFile) { : checks if the data ﬁle opened or not
+char datestring[26]; declares a character array “datestring” to store the date
+snprin _P(datestring,
+countof(datestring),
+PSTR("%04u-%02u-%02uT%02u:%02u:%02u+00:00"),
+dt.Year(),
+dt.Month(),
+dt.Day(),
+
+dt.Hour(),
+dt.Minute(),
+dt.Second());
+these func ons are used to format the date and me into the datestring using a speciﬁed format
+string and write the forma ed date, me, and distance values into the dateFile
+dataFile.print(datestring);
+dataFile.print(" ");
+dataFile.print("distance : ");
+dataFile.println(distance);
+using these print func ons it will print the date, me and distance
+dataFile.close(); closes the dataﬁle to save changes into the SD card
+delay(2000); giving 2000ms of delay me to ensure data is wri en in SD card
+void send_data(ﬂoat Distance_S) { this func on will send data mainly Distance _S via GSM module
+using AT commands
+gprsSerial.println("AT+CIPSHUT"); it will send an AT command (AT+CIPSHUT)to shutdown the IP
+stack
+gprsSerial.println("AT+CIPSTATUS"); it will send an AT command (AT+CIPSTATUS) to check the status
+of the IP connec on
+gprsSerial.println("AT+CIPMUX=0"); it will send an (AT+CIPMUX=0) command to set single IP
+connec on mode
+ShowSerialData(); it will clear the serial input buﬀer to prepare the serial port for subsequent serial
+communica on
+gprsSerial.println("AT+CSTT=\"cmnet\""); it will send the AT command ("AT+CSTT=\"cmnet\""); to
+setup APN for the mobile network
+ShowSerialData(); it will again clear the serial input buﬀer
+gprsSerial.println("AT+CIICR"); it will send an AT command (AT+CIICR) to bring wireless connec on
+gprsSerial.println("AT+CIFSR"); it will send this AT command to get the local IP address
+ShowSerialData(); it will again clear the serial input buﬀer
+gprsSerial.println("AT+CIPSPRT=0"); it will send this AT command to set the connec on type to
+transparent
+ShowSerialData(); it will again clear the serial input buﬀer
+gprsSerial.println("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",\"80\""); it will send the AT
+command to start the TCP connec on with the thingspeak server on port 80
+ShowSerialData(); it will again clear the serial input buﬀer
+
+gprsSerial.println("AT+CIPSEND"); it will this AT command to begin the process of sending data over
+TCP connec on
+ShowSerialData(); it will again clear the serial input buﬀer
+gprsSerial.println("GET
+h ps://api.thingspeak.com/update?api_key=6FU7YFXWVWCNCECH&ﬁeld1="+String(Distance_S));
+it will send an HTTP GET request to the speciﬁed ThingSpeak URL to update a ﬁeld(ﬁeld1) with the
+value of Distance_S
+ShowSerialData(); it will again clear the serial input buﬀer
+gprsSerial.println((char)26); it will send the ASCII control Z character to singal the end of the HTTP
+request which was ini ated with AT+ CIPSEND command.
+gprsSerial.println(); it will send the newline character to terminate the current command and
+prepare for the next command
+ShowSerialData(); it will again clear the serial input buﬀer
+gprsSerial.println("AT+CIPSHUT"); it will send this AT command to close the TCP connec on
+ShowSerialData(); clears the serial input buﬀer to handle other responses a er closing the TCP
+connec on
+delay(1000): a er every gprsSerial func on some amount of delay is given for execu ng the
+par cular command.
+void ShowSerialData(){ begins the deﬁni on of a func on named showSerialData() that does not
+return any value
+while(gprsSerial.available()!=0) Executes a loop as long as there is data available in the serial input
+buﬀer.
+gprsSerial.read(); It reads and discards one byte of data from the serial input buﬀer
+delay(5000); a er clearing the serial buﬀer the program waits for 5secs
+void printDateTime(const RtcDateTime& dt) { : Deﬁnes a func on named printDateTime that takes a
+constant reference to a RtcDateTime object (dt) as its parameter and does not return a value
+char datestring[20]; declares the character array with the name datestring with 20 characters to
+store forma ed date and me.
+snprin _P(datestring,
+countof(datestring),
+snprin _p is used to format date and me informa on into the string(datestring)
+PSTR("%02u/%02u/%04u %02u:%02u:%02u"),
+dt.Month(),
+dt.Day(),
+dt.Year(),
+
+dt.Hour(),
+dt.Minute(),
+dt.Second() );
+according to the given format, %02u represents an unsigned integer format with 2 digits %04
+represents an unsigned integer format with 4 digits
+void rtc_setup(){ It deﬁnes a func on named rtc_setup that ini alizes the real- me clock (RTC)
+module and sets its ini al conﬁgura on.
+Rtc.Begin(); It calls the Begin method on the Rtc object to ini alize the RTC module.
+RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__); it creates a new RtcDateTime object
+named compiled this sets an ini al reference me for RTC
+printDateTime(compiled); it is used to print the forma ed date and me
+if (!Rtc.IsDateTimeValid()) { It checks if the current date and me stored in the RTC module are valid
+are not.
+Rtc.SetDateTime(compiled); If the RTC date and me are not valid it sets the RTC module's date and
+me to the compiled date and me
+if (!Rtc.GetIsRunning()){ Checks if the RTC module is ac vely running or not.
+Rtc.SetIsRunning(true); If the RTC module is not running it starts the RTC module
+RtcDateTime now = Rtc.GetDateTime(); Retrieves the current date and me from the RTC module
+and stores it in the now variable.
+Rtc.SetDateTime(compiled); If the current RTC me is earlier than the compiled me, sets the RTC
+me to the compiled me.
+void setup() { ini alizing and se ng up the sketch
+myStepper.setSpeed(15); se ng the stepper motor speed to 15 RPM
+gprsSerial.begin(9600); Ini alizes the serial communica on for the GSM module at a baud rate of
+9600.
+do {
+windup_ckt = analogRead(Switch); Executes a loop that reads the analog value from the switch
+myStepper.step(162); se ng up the step value as 162
+while (windup_ckt < 500.0);
+distance = 0;
+When the switch reading exceeds 500 the loop winds up and it goes to star ng posi on and it resets
+the distance value to 0
+void loop() { This func on is called repeatedly a er setup() func on completes. It contains the main
+logic that executes in a loop in the Arduino
+
+READING THE FORCE SENSOR:
+reading = (reading + analogRead(forcePin))/2; Reads the analog value from the force sensor and
+calculates a moving average by adding the current reading to the previous value and dividing by 2.
+while (reading > 10) {
+myStepper.step(-162);
+delay(500);
+distance += stepval * dist_per_step;
+It enters a loop if the force sensor reading is greater than 10. Inside the loop, the stepper motor
+steps in reverse (-162 steps), and the distance measurement is updated based on the step value and
+distance per step
+while (reading <=10) {
+myStepper.step(162);
+delay(500);
+distance -= stepval * dist_per_step;
+It enters a loop if the force sensor reading is less than or equal to 10. Inside the loop, the stepper
+motor steps forward (162 steps), and the distance measurement based on the step value and
+distance per step
+send_data(distance); This func on is used to transmit the distance value over GSM using AT
+commands
+rtc_setup(); This func on is used to ini alize and conﬁgure the real- me clock (RTC) module
+writeData(distance,RtcDateTime(__DATE__, __TIME__)); This func on is used to write the current
+distance value and current date/ me to an SD card ﬁle
+delay(5 * 60000); giving 5 minutes of delay me
+if (millis() - reset_ me >= 3 * 60 * 60000) {
+do {
+windup_ckt = analogRead(Switch);
+myStepper.step(-162);
+} while (windup_ckt < 500.0);
+distance = 0;
+}
+}
+Checks if the elapsed me since the last reset is greater than or equal to 3 hours (3 * 60 * 60,000
+milliseconds). If true, it enters a loop to wind up the stepper motor un l the switch threshold is
+reached and then resets the distance measurement to zero.
+
+
