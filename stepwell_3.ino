@@ -40,6 +40,7 @@ int stepval = 162;
 int reading = 0;
 float distance = 0;
 unsigned long int reset_time = millis();
+//unsigned long int revolutions = 0;
 Stepper myStepper(stepsPerRevolution, IN1, IN3, IN2, IN4);
 
 //void check_SD(){
@@ -131,7 +132,7 @@ void send_data(float Distance_S) {
   ShowSerialData();
 //String str="GET https://api.thingspeak.com/update?api_key=FWV3D8ZLP6LXP5K3&field1=" + String(Distance_S) +"&created_at=" + String("2014-12-31T23:59:59+00:00");
 //  Serial.println("GET https://api.thingspeak.com/update?api_key=6FU7YFXWVWCNCECH&field1=" + String(Distance_S));
-  gprsSerial.println("GET https://api.thingspeak.com/update?api_key=6FU7YFXWVWCNCECH&field1=" + String(Distance_S));//begin send data to remote server
+  gprsSerial.println("GET https://api.thingspeak.com/update?api_key=K43JEHZ13MC9OAC8&field1=" + String(Distance_S));//begin send data to remote server
   delay(8000);
   ShowSerialData();
   gprsSerial.println((char)26);//sending
