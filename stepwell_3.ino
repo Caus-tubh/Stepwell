@@ -40,7 +40,7 @@ int stepval = 162;
 int reading = 0;
 float distance = 0;
 unsigned long int reset_time = millis();
-//unsigned long int revolutions = 0;
+unsigned long int timeout = millis();
 Stepper myStepper(stepsPerRevolution, IN1, IN3, IN2, IN4);
 
 //void check_SD(){
@@ -132,7 +132,7 @@ void send_data(float Distance_S) {
   ShowSerialData();
 //String str="GET https://api.thingspeak.com/update?api_key=FWV3D8ZLP6LXP5K3&field1=" + String(Distance_S) +"&created_at=" + String("2014-12-31T23:59:59+00:00");
 //  Serial.println("GET https://api.thingspeak.com/update?api_key=6FU7YFXWVWCNCECH&field1=" + String(Distance_S));
-  gprsSerial.println("GET https://api.thingspeak.com/update?api_key=K43JEHZ13MC9OAC8&field1=" + String(Distance_S));//begin send data to remote server
+  gprsSerial.println("GET https://api.thingspeak.com/update?api_key=6FU7YFXWVWCNCECH&field1=" + String(Distance_S));//begin send data to remote server
   delay(8000);
   ShowSerialData();
   gprsSerial.println((char)26);//sending
@@ -222,11 +222,12 @@ void setup() {
   }
 //  windUp();
  do {
+    timeout = millis();
     windup_ckt = analogRead(Switch);
 //    Serial.println("windup switch : ");
 //    Serial.print(windup_ckt);
-    myStepper.step(162);
-  } while (windup_ckt < 500.0);
+    myStepper.step(-162);
+  } while (windup_ckt < 500.0 && millis() - timeout < 10000L);
   distance = 0;
 }
 
@@ -240,7 +241,7 @@ void loop() {
   // This is the case when the bob is hanging in the air
   while (reading > 10) {
 //    Serial.println("lowering bob down");
-  myStepper.step(-162);
+  myStepper.step(162);
   delay(500);
   distance += stepval * dist_per_step;
 
@@ -250,7 +251,7 @@ void loop() {
   // This is the case when the bob is floating on the water level
   while (reading <= 10) {
 //    Serial.println("Pulling bob up");
-  myStepper.step(162);
+  myStepper.step(-162);
   delay(500);
   distance -= stepval * dist_per_step;
   // Serial.println(distance);
@@ -273,11 +274,11 @@ void loop() {
   if (millis() - reset_time >= 3 * 60 * 60000) {
 //  windUp();
     do {
-      windup_ckt = analogRead(Switch);
-//      Serial.println("windup switch : ");
-//      Serial.print(windup_ckt);
-      myStepper.step(-162);
-    } while (windup_ckt < 500.0);
-    distance = 0;
-  }
+    timeout = millis();
+    windup_ckt = analogRead(Switch);
+//    Serial.println("windup switch : ");
+//    Serial.print(windup_ckt);
+    myStepper.step(-162);
+  } while (windup_ckt < 500.0 && millis() - timeout < 10000L);
+  distance = 0;
 }

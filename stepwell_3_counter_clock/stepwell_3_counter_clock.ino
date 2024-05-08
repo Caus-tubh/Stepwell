@@ -40,7 +40,7 @@ int stepval = 162;
 int reading = 0;
 float distance = 0;
 unsigned long int reset_time = millis();
-//unsigned long int revolutions = 0;
+unsigned long int timeout = millis();
 Stepper myStepper(stepsPerRevolution, IN1, IN3, IN2, IN4);
 
 //void check_SD(){
@@ -222,11 +222,12 @@ void setup() {
   }
 //  windUp();
  do {
+    timeout = millis();
     windup_ckt = analogRead(Switch);
 //    Serial.println("windup switch : ");
 //    Serial.print(windup_ckt);
     myStepper.step(162);
-  } while (windup_ckt < 500.0);
+  } while (windup_ckt < 500.0 && millis() - timeout < 10000L);
   distance = 0;
 }
 
@@ -273,11 +274,12 @@ void loop() {
   if (millis() - reset_time >= 3 * 60 * 60000) {
 //  windUp();
     do {
-      windup_ckt = analogRead(Switch);
-//      Serial.println("windup switch : ");
-//      Serial.print(windup_ckt);
-      myStepper.step(-162);
-    } while (windup_ckt < 500.0);
-    distance = 0;
+    timeout = millis();
+    windup_ckt = analogRead(Switch);
+//    Serial.println("windup switch : ");
+//    Serial.print(windup_ckt);
+    myStepper.step(162);
+  } while (windup_ckt < 500.0 && millis() - timeout < 10000L);
+  distance = 0;
   }
 }
