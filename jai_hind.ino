@@ -148,7 +148,7 @@ void send_data(float Distance_S) {
   ShowSerialData();
 //String str="GET https://api.thingspeak.com/update?api_key=FWV3D8ZLP6LXP5K3&field1=" + String(Distance_S) +"&created_at=" + String("2014-12-31T23:59:59+00:00");
 //  Serial.println("GET https://api.thingspeak.com/update?api_key=6FU7YFXWVWCNCECH&field1=" + String(Distance_S));
-  gprsSerial.println("GET https://api.thingspeak.com/update?api_key=6FU7YFXWVWCNCECH&field1=" + String(Distance_S));//begin send data to remote server
+  gprsSerial.println("GET https://api.thingspeak.com/update?api_key=C2GY17LE4BOLY0UQ&field1=" + String(Distance_S));//begin send data to remote server
   delay(8000);
   ShowSerialData();
   gprsSerial.println((char)26);//sending
@@ -242,7 +242,7 @@ void setup() {
     windup_ckt = analogRead(Switch);
 //    Serial.println("windup switch : ");
 //    Serial.print(windup_ckt);
-    myStepper.step(-162);
+    myStepper.step(162);
   } while (windup_ckt < 500.0 && millis() - timeout < 10000L);
   distance = 0;
 }
@@ -258,7 +258,7 @@ void loop() {
   while (reading > 10) {
 //    Serial.println("lowering bob down");
   power_up_stepper();
-  myStepper.step(162);
+  myStepper.step(-162);
   delay(500);
   distance += stepval * dist_per_step;
   reading = analogRead(forcePin);
@@ -267,7 +267,7 @@ void loop() {
   // This is the case when the bob is floating on the water level
   while (reading <= 10) {
 //    Serial.println("Pulling bob up");
-  myStepper.step(-162);
+  myStepper.step(162);
   power_down_stepper();
   delay(500);
   distance -= stepval * dist_per_step;
@@ -293,9 +293,8 @@ void loop() {
     do {
     timeout = millis();
     windup_ckt = analogRead(Switch);
-//    Serial.println("windup switch : ");
 //    Serial.print(windup_ckt);
-    myStepper.step(-162);
+    myStepper.step(162);
   } while (windup_ckt < 500.0 && millis() - timeout < 10000L);
   distance = 0;
   }
