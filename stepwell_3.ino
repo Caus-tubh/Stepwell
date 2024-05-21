@@ -281,4 +281,5 @@ void loop() {
     myStepper.step(-162);
   } while (windup_ckt < 500.0 && millis() - timeout < 10000L);
   distance = 0;
+  }
 }
