@@ -34,11 +34,12 @@ const int stepsPerRevolution = 2048;  // change this to fit the number of steps 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
 // Let the radius of the spool be 20 mm
-//float r = 11.25;
+//float r = 14;
 //float pi = 3.14159;
-//float dist_per_rev = 2 * pi * r;// =70.685
-//float dist_per_step = dist_per_rev / stepsPerRevolution;//
-float dist_per_step = 0.03451;
+//float dist_per_rev = 2 * pi * r;// =81.68
+//float dist_per_step = dist_per_rev / stepsPerRevolution;//0.0398
+byte state;
+float dist_per_step = 0.0398;
 int stepval = 162;
 int reading = 0;
 float distance = 0;
@@ -57,6 +58,21 @@ Stepper myStepper(stepsPerRevolution, IN1, IN3, IN2, IN4);
 //    Serial.println("card initialized.");
 //  }
 //}
+
+void power_down_stepper(){
+  for (byte i = 4 ; i <= 7 ; i++){
+    state = (state << 1) + digitalRead(i);
+    pinMode (i, INPUT) ;
+  }
+}
+
+void power_up_stepper(){
+  for (byte i = 4 ; i <= 7 ; i++) {
+    pinMode (i, OUTPUT) ;
+    digitalWrite (i, (state & 0x8) == 0x8);
+    state <<= 1 ;
+  } 
+}
 
 void writeData(float distance, const RtcDateTime& dt){
   File dataFile;
@@ -230,7 +246,7 @@ void setup() {
 //    Serial.println("windup switch : ");
 //    Serial.print(windup_ckt);
     myStepper.step(-162);
-  } while (windup_ckt < 500.0 && millis() - timeout < 10000L);
+  } while (windup_ckt < 500.0 && millis() - timeout < 1200000L);
   distance = 0;
 }
 
@@ -242,6 +258,7 @@ void loop() {
 //  Serial.println(reading);
 //  Serial.println("");
   // This is the case when the bob is hanging in the air
+  power_up_stepper();
   while (reading > 10) {
 //    Serial.println("lowering bob down");
   myStepper.step(162);
@@ -255,12 +272,14 @@ void loop() {
   while (reading <= 10) {
 //    Serial.println("Pulling bob up");
   myStepper.step(-162);
+  power_down_stepper();
   delay(500);
   distance -= stepval * dist_per_step;
   // Serial.println(distance);
   reading = analogRead(forcePin);
 //    Serial.println(reading);
   }
+  power_down_stepper();
 //  Serial.print("\nDistance = ");
 //  Serial.println(distance);
 //  Serial.println("------------");
@@ -282,6 +301,7 @@ void loop() {
 //    Serial.println("windup switch : ");
 //    Serial.print(windup_ckt);
     myStepper.step(-162);
-  } while (windup_ckt < 500.0 && millis() - timeout < 10000L);
+  } while (windup_ckt < 500.0 && millis() - timeout < 1200000L);
   distance = 0;
+}
 }
