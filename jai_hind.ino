@@ -1,3 +1,5 @@
+//Jai hind depth-78 feet
+
 #include <Stepper.h>
 #include <Wire.h>
 //#include <SoftwareSerial.h>
@@ -35,6 +37,7 @@ const int stepsPerRevolution = 2048;  // change this to fit the number of steps 
 //float pi = 3.14159;
 //float dist_per_rev = 2 * pi * r;
 //float dist_per_step = dist_per_rev / stepsPerRevolution;
+byte state ;
 float dist_per_step = 0.03068;
 int stepval = 162;
 int reading = 0;
@@ -83,7 +86,20 @@ void writeData(float distance, const RtcDateTime& dt){
   delay(2000);
   //reset();
 }
+void power_down_stepper(){
+  for (byte i = 4 ; i <= 7 ; i++){
+    state = (state << 1) + digitalRead(i);
+    pinMode (i, INPUT) ;
+  }
+}
 
+void power_up_stepper(){
+  for (byte i = 4 ; i <= 7 ; i++) {
+    pinMode (i, OUTPUT) ;
+    digitalWrite (i, (state & 0x8) == 0x8);
+    state <<= 1 ;
+  } 
+}
 //void windUp() {
 //  do {
 //    windup_ckt = analogRead(Switch);
@@ -241,10 +257,10 @@ void loop() {
   // This is the case when the bob is hanging in the air
   while (reading > 10) {
 //    Serial.println("lowering bob down");
+  power_up_stepper();
   myStepper.step(162);
   delay(500);
   distance += stepval * dist_per_step;
-
   reading = analogRead(forcePin);
 //    Serial.println(reading);
   }
@@ -252,6 +268,7 @@ void loop() {
   while (reading <= 10) {
 //    Serial.println("Pulling bob up");
   myStepper.step(-162);
+  power_down_stepper();
   delay(500);
   distance -= stepval * dist_per_step;
   // Serial.println(distance);
@@ -281,4 +298,5 @@ void loop() {
     myStepper.step(-162);
   } while (windup_ckt < 500.0 && millis() - timeout < 10000L);
   distance = 0;
+  }
 }
