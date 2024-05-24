@@ -36,7 +36,7 @@ const int stepsPerRevolution = 2048;  // change this to fit the number of steps 
 //float dist_per_rev = 2 * pi * r;//50.265
 //float dist_per_step = dist_per_rev / stepsPerRevolution;//0.0245
 byte state ;
-float dist_per_step = 0.0245;
+float dist_per_step = 0.046;
 int stepval = 162;
 int reading = 0;
 float distance = 0;
@@ -234,18 +234,19 @@ void setup() {
   pinMode(forcePin, INPUT);
 //  check_SD();
   delay(10000);
- if (!SD.begin(chipSelect)) {
+  if (!SD.begin(chipSelect)) {
 //    Serial.println("SD failed");
     send_data(-100);
   }
 //  windUp();
- do {
-    timeout = millis();
+  timeout = millis();
+  do {
     windup_ckt = analogRead(Switch);
 //    Serial.println("windup switch : ");
 //    Serial.print(windup_ckt);
     myStepper.step(162);
-  } while (windup_ckt < 500.0 && millis() - timeout < 1200000L);
+    if(millis() - timeout > 1200000L)break;
+  } while (windup_ckt < 500.0);
   distance = 0;
 }
 
@@ -287,20 +288,21 @@ void loop() {
 //  RtcDateTime now = Rtc.GetDateTime();
   writeData(distance,RtcDateTime(__DATE__, __TIME__));
 //  windUp();
-  delay(5 * 60000);
+  delay(15 * 60000);
 //  Serial.println("Data Sent Successfully");
 
   //////////////////////////////////////////////////////////////
 
-  if (millis() - reset_time >= 3 * 60 * 60000) {
+  if (millis() - reset_time >= 24 * 60 * 60000) {
 //  windUp();
-    do {
     timeout = millis();
-    windup_ckt = analogRead(Switch);
-//    Serial.println("windup switch : ");
-//    Serial.print(windup_ckt);
-    myStepper.step(162);
-  } while (windup_ckt < 500.0 && millis() - timeout < 1200000L);
+    do {
+      windup_ckt = analogRead(Switch);
+  //    Serial.println("windup switch : ");
+  //    Serial.print(windup_ckt);
+      myStepper.step(162);
+      if(millis() - timeout > 1200000L)break;
+  } while (windup_ckt < 10.0);
   distance = 0;
 }
 }

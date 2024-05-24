@@ -237,13 +237,14 @@ void setup() {
     send_data(-100);
   }
 //  windUp();
- do {
-    timeout = millis();
+ timeout = millis();
+  do {
     windup_ckt = analogRead(Switch);
 //    Serial.println("windup switch : ");
 //    Serial.print(windup_ckt);
     myStepper.step(162);
-  } while (windup_ckt < 500.0 && millis() - timeout < 1200000L);
+    if(millis() - timeout > 1200000L)break;
+  } while (windup_ckt < 500.0);
   distance = 0;
 }
 
@@ -258,7 +259,6 @@ void loop() {
   power_up_stepper();
   while (reading > 10) {
 //    Serial.println("lowering bob down");
-  power_up_stepper();
   myStepper.step(-162);
   delay(500);
   distance += stepval * dist_per_step;
@@ -284,19 +284,21 @@ void loop() {
 //  RtcDateTime now = Rtc.GetDateTime();
   writeData(distance,RtcDateTime(__DATE__, __TIME__));
 //  windUp();
-  delay(5 * 60000);
+  delay(15 * 60000);
 //  Serial.println("Data Sent Successfully");
 
   //////////////////////////////////////////////////////////////
 
-  if (millis() - reset_time >= 3 * 60 * 60000) {
+  if (millis() - reset_time >= 24 * 60 * 60000) {
 //  windUp();
-    do {
-    timeout = millis();
+  timeout = millis();
+  do {
     windup_ckt = analogRead(Switch);
+//    Serial.println("windup switch : ");
 //    Serial.print(windup_ckt);
     myStepper.step(162);
-  } while (windup_ckt < 500.0 && millis() - timeout < 1200000L);
+    if(millis() - timeout > 1200000L)break;
+  } while (windup_ckt < 500.0);
   distance = 0;
   }
 }
