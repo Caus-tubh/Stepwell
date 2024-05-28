@@ -286,6 +286,7 @@ void loop() {
 //  Serial.println("------------");
   send_data(distance);
   rtc_setup();
+  Rtc.Begin();
   RtcDateTime now = Rtc.GetDateTime();
 //  RtcDateTime now = Rtc.GetDateTime();
   writeData(distance,now);
