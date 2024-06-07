@@ -77,23 +77,23 @@ void writeData(float distance, const RtcDateTime& dt){
   File dataFile;
   dataFile = SD.open("datalog.txt", FILE_WRITE);
   if (dataFile) {
-  char datestring[26];
-  snprintf_P(datestring,  
-      countof(datestring),
-      PSTR("%04u-%02u-%02uT%02u:%02u:%02u+00:00"),
-      dt.Year(),
-      dt.Month(),
-      dt.Day(),
-      dt.Hour(),
-      dt.Minute(),
-      dt.Second());
-  dataFile.print(datestring);
-  dataFile.print(" ");
-  dataFile.print("distance : ");
-  dataFile.println(distance);
-  dataFile.close();
-  // print to the serial port too:
-  //Serial.println(dataString);
+    char datestring[26];
+    snprintf_P(datestring,  
+        countof(datestring),
+        PSTR("%04u-%02u-%02uT%02u:%02u:%02u+00:00"),
+        dt.Year(),
+        dt.Month(),
+        dt.Day(),
+        dt.Hour(),
+        dt.Minute(),
+        dt.Second());
+    dataFile.print(datestring);
+    dataFile.print(" ");
+    dataFile.print("distance : ");
+    dataFile.println(distance);
+    dataFile.close();
+    // print to the serial port too:
+    //Serial.println(dataString);
   }
 //  else {
 //    Serial.println("error opening datalog.txt");
@@ -168,20 +168,20 @@ void ShowSerialData(){
   delay(5000);   
 }
 
-void printDateTime(const RtcDateTime& dt) {
-    char datestring[20];
-
-    snprintf_P(datestring, 
-            countof(datestring),
-            PSTR("%02u/%02u/%04u %02u:%02u:%02u"),
-            dt.Month(),
-            dt.Day(),
-            dt.Year(),
-            dt.Hour(),
-            dt.Minute(),
-            dt.Second() );
-//    Serial.print(datestring);
-}
+//void printDateTime(const RtcDateTime& dt) {
+//    char datestring[26];
+//
+//    snprintf_P(datestring, 
+//            countof(datestring),
+//            PSTR("%02u/%02u/%04u %02u:%02u:%02u"),
+//            dt.Month(),
+//            dt.Day(),
+//            dt.Year(),
+//            dt.Hour(),
+//            dt.Minute(),
+//            dt.Second() );
+////    Serial.print(datestring);
+//}
 //char DateTime(const RtcDateTime& dt){
 //  char datestring[26];
 //// 2014-12-31T23:59:59+00:00
@@ -199,7 +199,7 @@ void printDateTime(const RtcDateTime& dt) {
 void rtc_setup(){
   Rtc.Begin();
   RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
-  printDateTime(compiled);
+//  printDateTime(compiled);
 //  Serial.println();
   if (!Rtc.IsDateTimeValid()) {
 //    Serial.println("RTC lost confidence in the DateTime!");
@@ -284,12 +284,12 @@ void loop() {
 //  Serial.print("\nDistance = ");
 //  Serial.println(distance);
 //  Serial.println("------------");
-  send_data(distance);
   rtc_setup();
   Rtc.Begin();
   RtcDateTime now = Rtc.GetDateTime();
 //  RtcDateTime now = Rtc.GetDateTime();
   writeData(distance,now);
+  send_data(distance);
 //  windUp();
   delay(15 * 60000);
 //  Serial.println("Data Sent Successfully");

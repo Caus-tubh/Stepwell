@@ -281,8 +281,8 @@ void loop() {
 //  Serial.println("------------");
   send_data(distance);
   rtc_setup();
-//  RtcDateTime now = Rtc.GetDateTime();
-  writeData(distance,RtcDateTime(__DATE__, __TIME__));
+  RtcDateTime now = Rtc.GetDateTime();
+  writeData(distance,now);
 //  windUp();
   delay(15 * 60000);
 //  Serial.println("Data Sent Successfully");
