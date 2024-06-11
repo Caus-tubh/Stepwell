@@ -289,16 +289,16 @@ void loop() {
 
   //////////////////////////////////////////////////////////////
 
-  if (millis() - reset_time >= 24 * 60 * 60000) {
-//  windUp();
-  timeout = millis();
-  do {
-    windup_ckt = analogRead(Switch);
-//    Serial.println("windup switch : ");
-//    Serial.print(windup_ckt);
-    myStepper.step(162);
-    if(millis() - timeout > 1200000L)break;
-  } while (windup_ckt < 500.0);
-  distance = 0;
-  }
+//  if (millis() - reset_time >= 24 * 60 * 60000) {
+////  windUp();
+//  timeout = millis();
+//  do {
+//    windup_ckt = analogRead(Switch);
+////    Serial.println("windup switch : ");
+////    Serial.print(windup_ckt);
+//    myStepper.step(162);
+//    if(millis() - timeout > 1200000L)break;
+//  } while (windup_ckt < 500.0);
+//  distance = 0;
+//  }
 }

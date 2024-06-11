@@ -286,7 +286,7 @@ void loop() {
 //  Serial.println("------------");
   send_data(distance);
   rtc_setup();
-  Rtc.begin();
+  Rtc.Begin();
   RtcDateTime now = Rtc.GetDateTime();
   writeData(distance,now);
 //  windUp();
@@ -295,16 +295,16 @@ void loop() {
 
   //////////////////////////////////////////////////////////////
 
-  if (millis() - reset_time >= 24 * 60 * 60000) {
-//  windUp();
-    timeout = millis();
-    do {
-      windup_ckt = analogRead(Switch);
-  //    Serial.println("windup switch : ");
-  //    Serial.print(windup_ckt);
-      myStepper.step(162);
-      if(millis() - timeout > 1200000L)break;
-  } while (windup_ckt < 10.0);
-  distance = 0;
-}
+//  if (millis() - reset_time >= 24 * 60 * 60000) {
+////  windUp();
+//    timeout = millis();
+//    do {
+//      windup_ckt = analogRead(Switch);
+//  //    Serial.println("windup switch : ");
+//  //    Serial.print(windup_ckt);
+//      myStepper.step(162);
+//      if(millis() - timeout > 1200000L)break;
+//  } while (windup_ckt < 10.0);
+//  distance = 0;
+//  }
 }
